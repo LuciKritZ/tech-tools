@@ -18,7 +18,7 @@ export const databaseService = async (mongoURI: string, retryCount = 0): Promise
     if (retryCount < MAX_RETRIES) {
       const delay = BASE_DELAY * Math.pow(2, retryCount);
       logger.info(`Retrying connection in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return databaseService(mongoURI, retryCount + 1);
     } else {
       logger.error(`Failed to connect to database after ${MAX_RETRIES} retries`);

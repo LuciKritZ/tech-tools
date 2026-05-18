@@ -1,3 +1,7 @@
+jest.mock('dotenv', () => ({
+  config: jest.fn(),
+}));
+
 describe('Environment Config', () => {
   const originalEnv = process.env;
 
@@ -19,7 +23,7 @@ describe('Environment Config', () => {
     process.env.LOCAL_MONGO_URI = 'mongodb://localhost:27017/archive';
 
     const { env: reloadedEnv } = require('../../src/env/index.env');
-    
+
     expect(reloadedEnv.NODE_ENV).toBe('development');
     expect(reloadedEnv.PORT).toBe(3000); // parsed to number
     expect(reloadedEnv.MONGO_DB_URI).toBe('mongodb://localhost:27017');
@@ -28,7 +32,7 @@ describe('Environment Config', () => {
 
   it('should throw an error if required environment variables are missing', () => {
     delete process.env.MONGO_DB_URI;
-    
+
     expect(() => {
       require('../../src/env/index.env');
     }).toThrow();
