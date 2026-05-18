@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "NODE_OPTIONS=\"--experimental-vm-modules\" jest",
     "dev": "ts-node -r tsconfig-paths/register --files src/index.ts",
     "start:nodemon": "nodemon",
-    "build": "rm -rf dist && npx tsc",
+    "build": "rm -rf dist && npx tsc -p tsconfig.build.json",
     "start:prod": "npm run build && node ./dist/index.js",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",

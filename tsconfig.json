@@ -17,13 +17,13 @@
     "noImplicitAny": true,
     "strictPropertyInitialization": false,
     "outDir": "./dist",
-    "rootDir": "src",
+    "rootDir": "./",
     "typeRoots": ["./node_modules/@types", "src/types"],
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "./tests/**/*"],
   "exclude": ["node_modules"]
 }
