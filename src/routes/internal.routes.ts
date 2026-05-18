@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Job, TechnicalPiece, StartupNews, ScrapeRun } from '@/models/index.model';
+import { PipelineService } from '@/services/pipeline.service';
 import { logger } from '@/shared/index.shared';
 
 /**
@@ -87,4 +88,56 @@ internalRouter.get('/stats', async (req: Request, res: Response) => {
     });
   }
 });
+
+/**
+ * POST /internal/scrape
+ * Manual scraping trigger endpoint.
+ * Accepts an optional "limit" query parameter (defaults to 10).
+ */
+internalRouter.post('/scrape', async (req: Request, res: Response) => {
+  try {
+    const limitQuery = req.query.limit;
+    const limit = limitQuery ? parseInt(limitQuery as string, 10) : 10;
+
+    if (isNaN(limit) || limit <= 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid limit parameter supplied. Must be a positive integer.',
+      });
+    }
+
+    logger.info(`Manual scraping triggered via /internal/scrape with limit ${limit}`);
+
+    const pipeline = new PipelineService();
+    const summary = await pipeline.runScrape(limit);
+
+    if (summary.status === 'failed') {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Pipeline run failed. Check server logs.',
+        runId: summary.runId,
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Scraping run completed successfully',
+      data: {
+        runId: summary.runId,
+        status: summary.status,
+        itemsFetched: summary.itemsFetched,
+        itemsProcessed: summary.itemsProcessed,
+        startTime: summary.startTime,
+        endTime: summary.endTime,
+      },
+    });
+  } catch (error) {
+    logger.error({ error }, 'Error during manual scraping trigger');
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error while triggering manual scraping',
+    });
+  }
+});
+
 export default internalRouter;
