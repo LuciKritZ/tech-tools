@@ -108,7 +108,7 @@ Manage the daemon process using the following registered NPM scripts:
 
 ## Telemetry & Health Monitoring
 
-The Express application exposes dedicated diagnostic endpoints private to the loopback interface (`127.0.0.1`) to monitor database connectivity, resource usage, and collection statistics:
+The Express application exposes dedicated diagnostic endpoints private to the loopback interface (`127.0.0.1`) to monitor database connectivity, resource usage, collection statistics, and manually trigger ingestion:
 
 - **System Health Checks**:
 
@@ -119,12 +119,18 @@ The Express application exposes dedicated diagnostic endpoints private to the lo
   Returns connection state, uptime, and system heap memory statistics.
 
 - **Collection Statistics**:
+
   ```bash
   curl -s http://127.0.0.1:3000/internal/stats
   ```
+
   Returns count aggregates for `Job` (active/inactive), `TechnicalPiece`, `StartupNews`, and successful/failed `ScrapeRun` logs.
 
----
+- **Manual Scraper Ingestion Trigger**:
+  ```bash
+  curl -X POST -s "http://127.0.0.1:3000/internal/scrape?limit=10"
+  ```
+  Triggers a manual scraping run of up to `limit` items, returning ingestion metrics.
 
 ## Local Database Backups
 

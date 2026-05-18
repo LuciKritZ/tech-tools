@@ -3,6 +3,17 @@ import mongoose from 'mongoose';
 import applicationModule from '../../src/modules/app.module';
 import { Job, TechnicalPiece, StartupNews, ScrapeRun } from '../../src/models/index.model';
 
+const mockRunScrape = jest.fn();
+jest.mock('@/services/pipeline.service', () => {
+  return {
+    PipelineService: jest.fn().mockImplementation(() => {
+      return {
+        runScrape: mockRunScrape,
+      };
+    }),
+  };
+});
+
 jest.mock('mongoose', () => {
   const actual = jest.requireActual('mongoose');
   return {
@@ -131,6 +142,78 @@ describe('Internal Diagnostics Routes', () => {
       });
 
       countJobsSpy.mockRestore();
+    });
+  });
+
+  describe('POST /internal/scrape', () => {
+    beforeEach(() => {
+      mockRunScrape.mockReset();
+    });
+
+    it('should trigger scraper pipeline run and return success metadata', async () => {
+      mockRunScrape.mockResolvedValue({
+        runId: 'test-run-123',
+        status: 'success',
+        itemsFetched: 10,
+        itemsProcessed: 8,
+        startTime: new Date('2026-05-18T00:00:00Z'),
+        endTime: new Date('2026-05-18T00:01:00Z'),
+      });
+
+      const res = await fetch(`${baseUrl}/internal/scrape?limit=15`, {
+        method: 'POST',
+      });
+      expect(res.status).toBe(200);
+
+      const body = await res.json();
+      expect(body).toEqual({
+        status: 'success',
+        message: 'Scraping run completed successfully',
+        data: expect.objectContaining({
+          runId: 'test-run-123',
+          status: 'success',
+          itemsFetched: 10,
+          itemsProcessed: 8,
+        }),
+      });
+
+      expect(mockRunScrape).toHaveBeenCalledWith(15);
+    });
+
+    it('should return 400 bad request if limit parameter is invalid', async () => {
+      const res = await fetch(`${baseUrl}/internal/scrape?limit=abc`, {
+        method: 'POST',
+      });
+      expect(res.status).toBe(400);
+
+      const body = await res.json();
+      expect(body).toEqual({
+        status: 'error',
+        message: 'Invalid limit parameter supplied. Must be a positive integer.',
+      });
+    });
+
+    it('should return 500 error if pipeline fails', async () => {
+      mockRunScrape.mockResolvedValue({
+        runId: 'test-run-123',
+        status: 'failed',
+        itemsFetched: 0,
+        itemsProcessed: 0,
+        startTime: new Date(),
+        endTime: new Date(),
+      });
+
+      const res = await fetch(`${baseUrl}/internal/scrape`, {
+        method: 'POST',
+      });
+      expect(res.status).toBe(500);
+
+      const body = await res.json();
+      expect(body).toEqual({
+        status: 'error',
+        message: 'Pipeline run failed. Check server logs.',
+        runId: 'test-run-123',
+      });
     });
   });
 });
