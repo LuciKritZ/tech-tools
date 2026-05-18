@@ -1,83 +1,164 @@
-# ts-express-mongo-template
+# tech-tools
 
-A boilerplate for creating a backend server with TypeScript, Express.JS, and MongoDB.
+tech-tools is a robust, high-performance backend application designed to gracefully ingest, filter, and structure job postings, technical articles, and startup news from Hacker News. It is built using Node.js, TypeScript, Express.js, and MongoDB.
 
-## Features
+The architecture emphasizes strict data integrity, telemetry monitoring via loopback endpoints, and reliable daemon execution under process supervisors.
 
-- TypeScript enabled
-- MongoDB
-- Linting and formatting using ESLint & Prettier
-- Nodemon for observing and updating server on file changes
+---
 
-## Environment Variables
+## System Requirements
 
-To run this project, you will need to add the following environment variables to your .env file
+- Node.js v20.0.0 or higher
+- MongoDB v6.0 or higher
+- PM2 (Optional, for production daemon monitoring)
 
-`PORT`
+---
 
-`MONGO_DB_URI`
+## Environment Configuration
 
-`NODE_ENV`
-
-## Run Locally
-
-Clone the project
+To run this project, clone the environment template into a `.env` file at the root:
 
 ```bash
-  git clone https://github.com/LuciKritZ/ts-express-mongo-template
+cp .env.example .env
 ```
 
-Go to the project directory
+Review the configurable options inside `.env`:
+
+- **PORT**: Port that the local loopback Express server listens on (Default: 3000).
+- **MONGO_DB_URI**: Mongoose connection string for local MongoDB instances (Default: mongodb://127.0.0.1:27017/tech-tools).
+- **NODE_ENV**: Target node execution environment ("production" or "development").
+- **LOG_LEVEL**: Logging granularity ("trace", "debug", "info", "warn", "error").
+
+---
+
+## Local Development Setup
+
+1. Install project dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Spin up the development server with hot-reload monitoring:
+
+   ```bash
+   npm run start:nodemon
+   ```
+
+3. Alternatively, start the dev server directly via ts-node:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## Production Build & Run
+
+### 1. Compile & Resolve Path Aliases
+
+To compile the TypeScript project into standard, alias-resolved JavaScript, execute:
 
 ```bash
-  cd ts-express-mongo-template
+npm run build
 ```
 
-Install dependencies
+This routine does two critical actions:
+
+- Compiles the modules into flat, optimized files inside `./dist/` using the `"rootDir": "./src"` parameter.
+- Automatically resolves custom `@/*` path alias mappings into compliant relative path references using `tsc-alias`.
+
+### 2. Launch Production Server
+
+To run the production bundle locally using a single Node process:
 
 ```bash
-  npm install
+npm run start:prod
 ```
 
-Start the server
+---
+
+## PM2 Process Supervision
+
+The project includes pre-configured integration with PM2 for production management (single instance daemon tracking, crash auto-recovery, and memory leaks protection).
+
+Manage the daemon process using the following registered NPM scripts:
+
+- **Start Daemon**:
+  ```bash
+  npm run pm2:start
+  ```
+- **Check Process Status**:
+  ```bash
+  npm run pm2:status
+  ```
+- **Stream Supervisor Logs**:
+  ```bash
+  npm run pm2:logs
+  ```
+- **Restart Daemon Instance**:
+  ```bash
+  npm run pm2:restart
+  ```
+- **Suspend/Stop Daemon**:
+  ```bash
+  npm run pm2:stop
+  ```
+
+---
+
+## Telemetry & Health Monitoring
+
+The Express application exposes dedicated diagnostic endpoints private to the loopback interface (`127.0.0.1`) to monitor database connectivity, resource usage, and collection statistics:
+
+- **System Health Checks**:
+
+  ```bash
+  curl -s http://127.0.0.1:3000/internal/health
+  ```
+
+  Returns connection state, uptime, and system heap memory statistics.
+
+- **Collection Statistics**:
+  ```bash
+  curl -s http://127.0.0.1:3000/internal/stats
+  ```
+  Returns count aggregates for `Job` (active/inactive), `TechnicalPiece`, `StartupNews`, and successful/failed `ScrapeRun` logs.
+
+---
+
+## Local Database Backups
+
+A clean, safe backup script is provided in `./scripts/backup-db.sh` to extract and compress database exports:
+
+- **Run Backup**:
+  ```bash
+  bash scripts/backup-db.sh
+  ```
+  This creates a gzipped archive under `./backups/tech-tools-[timestamp].gz` and automatically cleans up archives older than 7 days to preserve disk space.
+
+---
+
+## Quality Assurance & Testing
+
+### 1. Run Test Suite
+
+To execute all unit, integration, and E2E pipeline tests, run:
 
 ```bash
-  npm run start:nodemon
+npm test
 ```
 
-## NPM Scripts
+### 2. Linting & Formatting Checks
 
-### Development
+Verify code style rules and parser safety by executing:
 
-- `npm run dev` (Alternative to nodemon)
-- `npm run start:nodemon` (Takes configurations from `nodemon.json`)
+```bash
+npm run lint:check
+npm run format:check
+```
 
-### Production
-
-- `npm run start:prod`
-
-### TypeScript
-
-- `npm run build` - Compiles TS to JS
-
-### Prettier
-
-- `npm run format:check` - Checks if formatting matches to prettier's rules
-- `npm run format:write` - Force the formatting
-
-### ESLint
-
-- `npm run lint:check` - Lints the code
-- `npm run lint:fix` - Auto fixes the errors
-
-## Acknowledgements
-
-- [Creating new Node.js application with Express, TypeScript, Nodemon and ESLint][creating_a_node_js_app]
-- [Set up a Node.js App with ESLint and Prettier][eslint_and_prettier]
+---
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
-
-[creating_a_node_js_app]: https://dev.to/admirnisic/create-new-node-js-application-with-express-typescript-nodemon-and-eslint-f2l
-[eslint_and_prettier]: https://dev.to/devland/set-up-a-nodejs-app-with-eslint-and-prettier-4i7p
+MIT

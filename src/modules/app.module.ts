@@ -1,5 +1,6 @@
 import express, { type Application, json, NextFunction, Response, Request } from 'express';
 import { BaseError, ErrorHandler, logger } from '@/shared/index.shared';
+import { internalRouter } from '@/routes/internal.routes';
 
 const applicationModule = (): Application => {
   const app = express();
@@ -35,6 +36,9 @@ const applicationModule = (): Application => {
       message: 'API is working',
     });
   });
+
+  // Mount diagnostics and telemetry internal endpoints
+  app.use('/internal', internalRouter);
 
   // Error Handling Setup
   const errorHandler = new ErrorHandler(logger);

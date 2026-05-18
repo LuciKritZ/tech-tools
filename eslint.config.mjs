@@ -8,7 +8,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
   {
-    ignores: ['dist/**', 'node_modules/**', 'jest.config.js'],
+    ignores: ['dist/**', 'node_modules/**', 'jest.config.js', 'ecosystem.config.js'],
   },
   {
     files: ['src/**/*.ts', 'scripts/**/*.ts'],

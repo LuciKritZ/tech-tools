@@ -132,3 +132,6 @@ dist
 # AI Assistant
 .agent/
 .docs/
+
+# Custom Automation Workspace
+.automation/
